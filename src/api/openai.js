@@ -1,16 +1,28 @@
-const OPENAI_API_URL = "https://api.openai.com/v1/responses";
-
-function getEnvValue(viteKey, legacyKey) {
+function getEnvValue(...keys) {
   const viteEnv =
     typeof import.meta !== "undefined" && import.meta.env ? import.meta.env : {};
   const processEnv =
     typeof process !== "undefined" && process.env ? process.env : {};
 
-  return viteEnv[viteKey] || viteEnv[legacyKey] || processEnv[legacyKey] || "";
+  for (const key of keys) {
+    if (viteEnv[key]) {
+      return viteEnv[key];
+    }
+
+    if (processEnv[key]) {
+      return processEnv[key];
+    }
+  }
+
+  return "";
 }
 
-const OPENAI_MODEL =
-  getEnvValue("VITE_OPENAI_MODEL", "REACT_APP_OPENAI_MODEL") || "gpt-5.4-mini";
+const HF_BASE_URL =
+  getEnvValue("VITE_HF_BASE_URL", "VITE_BASE_URL") ||
+  "https://router.huggingface.co/v1";
+const HF_CHAT_COMPLETIONS_URL = `${HF_BASE_URL.replace(/\/$/, "")}/chat/completions`;
+const HF_MODEL =
+  getEnvValue("VITE_HF_MODEL", "MODEL_NAME") || "openai/gpt-oss-120b";
 
 function buildCatalogSummary(products) {
   return products
@@ -40,21 +52,26 @@ function buildPrompt(query, products) {
 }
 
 function extractResponseText(data) {
-  if (typeof data?.output_text === "string" && data.output_text.trim()) {
-    return data.output_text.trim();
+  const messageContent = data?.choices?.[0]?.message?.content;
+
+  if (typeof messageContent === "string" && messageContent.trim()) {
+    return messageContent.trim();
   }
 
-  const textParts = [];
+  if (Array.isArray(messageContent)) {
+    return messageContent
+      .map((item) => {
+        if (typeof item?.text === "string") {
+          return item.text;
+        }
 
-  for (const item of data?.output || []) {
-    for (const content of item?.content || []) {
-      if (content?.type === "output_text" && typeof content.text === "string") {
-        textParts.push(content.text);
-      }
-    }
+        return "";
+      })
+      .join("\n")
+      .trim();
   }
 
-  return textParts.join("\n").trim();
+  return "";
 }
 
 function sanitizeProductIds(ids, products) {
@@ -73,54 +90,57 @@ function parseRecommendationIds(responseText, products) {
   try {
     const parsed = JSON.parse(responseText);
 
-    if (!Array.isArray(parsed)) {
-      return [];
+    if (Array.isArray(parsed)) {
+      return sanitizeProductIds(parsed, products);
     }
 
-    return sanitizeProductIds(parsed, products);
+    if (Array.isArray(parsed?.productIds)) {
+      return sanitizeProductIds(parsed.productIds, products);
+    }
+
+    return [];
   } catch (error) {
     return [];
   }
 }
 
 export async function getRecommendations(query, products) {
-  const apiKey = getEnvValue(
-    "VITE_OPENAI_API_KEY",
-    "REACT_APP_OPENAI_API_KEY"
-  );
+  const apiKey = getEnvValue("VITE_HF_API_KEY", "HF_TOKEN", "OPENAPI_KEY");
 
   if (!apiKey) {
-    throw new Error("Missing VITE_OPENAI_API_KEY.");
+    throw new Error("Missing VITE_HF_API_KEY in your environment file.");
   }
 
-  // In production, call OpenAI from your server to avoid exposing secrets in the browser.
+  // In production, call Hugging Face from your server to avoid exposing secrets in the browser.
   try {
-    const response = await fetch(OPENAI_API_URL, {
+    const response = await fetch(HF_CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: OPENAI_MODEL,
-        input: [
+        model: HF_MODEL,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You recommend products from a provided catalog. Follow the user's budget and category constraints carefully.",
+          },
           {
             role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: buildPrompt(query, products),
-              },
-            ],
+            content: buildPrompt(query, products),
           },
         ],
+        temperature: 0.1,
+        max_tokens: 80,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
-        `OpenAI request failed with status ${response.status}: ${errorText}`
+        `Hugging Face request failed with status ${response.status}: ${errorText}`
       );
     }
 
@@ -130,7 +150,7 @@ export async function getRecommendations(query, products) {
     throw new Error(
       error instanceof Error
         ? error.message
-        : "Failed to fetch AI recommendations."
+        : "Failed to fetch Hugging Face recommendations."
     );
   }
 }

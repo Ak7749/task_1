@@ -1,3 +1,4 @@
+
 const products = [
   { id: 1, name: "Nova X Phone", price: 499, category: "Phone" },
   { id: 2, name: "Nova Lite Phone", price: 349, category: "Phone" },

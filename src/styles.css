@@ -1,0 +1,10 @@
+.search-input::placeholder {
+  color: #9aa5b1;
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .search-input {
+    width: 100%;
+  }
+}

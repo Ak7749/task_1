@@ -1,9 +1,16 @@
 import React from "react";
 
 function SearchBar({ query, onQueryChange, onSearch, isLoading }) {
+  const isDisabled = isLoading || !query.trim();
+
   return (
     <div style={styles.wrapper}>
+      <label htmlFor="product-query" style={styles.label}>
+        Describe what you want
+      </label>
+      <div style={styles.controls}>
       <input
+        id="product-query"
         type="text"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
@@ -12,51 +19,77 @@ function SearchBar({ query, onQueryChange, onSearch, isLoading }) {
             onSearch();
           }
         }}
-        placeholder="Try: phone under 500"
+        placeholder='Example: "phone under 500"'
         disabled={isLoading}
+        className="search-input"
         style={styles.input}
       />
       <button
         type="button"
         onClick={onSearch}
-        disabled={isLoading}
+        disabled={isDisabled}
         style={{
           ...styles.button,
-          ...(isLoading ? styles.buttonDisabled : null),
+          ...(isDisabled ? styles.buttonDisabled : null),
         }}
       >
-        {isLoading ? "Loading..." : "Get Recommendations"}
+        {isLoading ? "Finding matches..." : "Get Recommendations"}
       </button>
+      </div>
+      <p style={styles.helperText}>
+        Try a product type and budget, like phone under 500 or audio below 200.
+      </p>
     </div>
   );
 }
 
 const styles = {
   wrapper: {
+    marginBottom: "12px",
+  },
+  label: {
+    display: "block",
+    marginBottom: "10px",
+    color: "#102a43",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  controls: {
     display: "flex",
     gap: "12px",
     flexWrap: "wrap",
-    marginBottom: "16px",
   },
   input: {
     flex: "1 1 320px",
-    padding: "12px 14px",
-    borderRadius: "10px",
-    border: "1px solid #cbd2d9",
+    minHeight: "56px",
+    padding: "14px 16px",
+    borderRadius: "14px",
+    border: "1px solid #d9e2ec",
     fontSize: "16px",
+    color: "#102a43",
+    backgroundColor: "#ffffff",
+    outline: "none",
   },
   button: {
     border: "none",
-    borderRadius: "10px",
-    padding: "12px 18px",
+    borderRadius: "14px",
+    minHeight: "56px",
+    padding: "14px 20px",
     backgroundColor: "#0b6e4f",
     color: "#ffffff",
     fontSize: "16px",
+    fontWeight: 600,
     cursor: "pointer",
+    minWidth: "220px",
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.55,
     cursor: "not-allowed",
+  },
+  helperText: {
+    margin: "10px 2px 0",
+    color: "#7b8794",
+    fontSize: "13px",
   },
 };
 

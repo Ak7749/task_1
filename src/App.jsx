@@ -17,6 +17,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastQuery, setLastQuery] = useState("");
+  const hasSearched = Boolean(lastQuery);
 
   async function handleSearch() {
     const trimmedQuery = query.trim();
@@ -69,11 +70,16 @@ function App() {
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        <h1 style={styles.title}>AI Product Recommendations</h1>
-        <p style={styles.subtitle}>
-          Search with natural language, like <strong>"phone under 500"</strong>,
-          and get matching products from the catalog.
-        </p>
+        <div style={styles.hero}>
+          <div>
+            <span style={styles.eyebrow}>Smart Shopping Assistant</span>
+            <h1 style={styles.title}>AI Product Recommendations</h1>
+            <p style={styles.subtitle}>
+              Search with natural language, like <strong>"phone under 500"</strong>,
+              and get matching products from the catalog.
+            </p>
+          </div>
+        </div>
 
         <SearchBar
           query={query}
@@ -82,13 +88,14 @@ function App() {
           isLoading={isLoading}
         />
 
-        <div style={styles.note}>
-          Best practice: keep the OpenAI API key in environment variables and use a
+        <p style={styles.note}>
+          Tip: keep the Hugging Face API key in environment variables and use a
           backend proxy in production so the key is not exposed to the browser.
-        </div>
+        </p>
 
         {isLoading ? (
           <div style={styles.loadingBanner}>
+            <span style={styles.loadingDot} />
             Fetching AI recommendations and preparing results...
           </div>
         ) : null}
@@ -100,6 +107,7 @@ function App() {
           products={recommendedProducts}
           isLoading={isLoading}
           lastQuery={lastQuery}
+          hasSearched={hasSearched}
         />
       </div>
     </div>
@@ -109,45 +117,77 @@ function App() {
 const styles = {
   page: {
     minHeight: "100vh",
-    backgroundColor: "#f6f7fb",
-    padding: "32px 16px",
-    fontFamily: "Arial, sans-serif",
+    background:
+      "linear-gradient(180deg, #f5f7fb 0%, #eef4f1 100%)",
+    padding: "40px 16px 56px",
+    fontFamily: '"Segoe UI", Arial, sans-serif',
   },
   container: {
-    maxWidth: "920px",
+    maxWidth: "980px",
     margin: "0 auto",
-    backgroundColor: "#ffffff",
-    borderRadius: "16px",
-    padding: "24px",
-    boxShadow: "0 12px 32px rgba(15, 23, 42, 0.08)",
+    backgroundColor: "rgba(255, 255, 255, 0.92)",
+    borderRadius: "28px",
+    padding: "32px",
+    boxShadow: "0 24px 60px rgba(15, 23, 42, 0.08)",
+    border: "1px solid rgba(255, 255, 255, 0.7)",
+  },
+  hero: {
+    marginBottom: "24px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid #e4e7eb",
+  },
+  eyebrow: {
+    display: "inline-block",
+    marginBottom: "12px",
+    padding: "6px 10px",
+    borderRadius: "999px",
+    backgroundColor: "#eef8f4",
+    color: "#0b6e4f",
+    fontSize: "12px",
+    fontWeight: 700,
+    letterSpacing: "0.04em",
+    textTransform: "uppercase",
   },
   title: {
-    margin: "0 0 8px",
+    margin: "0 0 10px",
     color: "#102a43",
+    fontSize: "56px",
+    lineHeight: 1.05,
   },
   subtitle: {
     margin: "0 0 24px",
     color: "#52606d",
+    fontSize: "18px",
+    maxWidth: "760px",
   },
   note: {
-    marginBottom: "16px",
-    padding: "12px 14px",
-    borderRadius: "10px",
-    backgroundColor: "#eef8f4",
-    color: "#0b6e4f",
-    fontSize: "14px",
+    margin: "0 0 18px",
+    color: "#7b8794",
+    fontSize: "13px",
+    lineHeight: 1.5,
   },
   loadingBanner: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "10px",
     marginBottom: "16px",
     padding: "12px 14px",
-    borderRadius: "10px",
+    borderRadius: "12px",
     backgroundColor: "#e8f1ff",
     color: "#1f4f82",
+    fontWeight: 600,
+  },
+  loadingDot: {
+    width: "10px",
+    height: "10px",
+    borderRadius: "999px",
+    backgroundColor: "#1f4f82",
+    display: "inline-block",
   },
   errorBanner: {
     marginBottom: "16px",
     padding: "12px 14px",
-    borderRadius: "10px",
+    borderRadius: "12px",
     backgroundColor: "#ffe3e3",
     color: "#c92a2a",
   },
