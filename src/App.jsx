@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import SearchBar from "./components/SearchBar";
-import ProductList from "./components/ProductList";
-import RecommendationList from "./components/RecommendationList";
+import SearchBar from "./components/SearchBar.jsx";
+import ProductList from "./components/ProductList.jsx";
+import RecommendationList from "./components/RecommendationList.jsx";
 import products from "./data/products";
 import { getRecommendations } from "./api/openai";
 import { fallbackFilter } from "./utils/fallbackFilter";
