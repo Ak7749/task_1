@@ -1,5 +1,16 @@
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
-const OPENAI_MODEL = process.env.REACT_APP_OPENAI_MODEL || "gpt-5.4-mini";
+
+function getEnvValue(viteKey, legacyKey) {
+  const viteEnv =
+    typeof import.meta !== "undefined" && import.meta.env ? import.meta.env : {};
+  const processEnv =
+    typeof process !== "undefined" && process.env ? process.env : {};
+
+  return viteEnv[viteKey] || viteEnv[legacyKey] || processEnv[legacyKey] || "";
+}
+
+const OPENAI_MODEL =
+  getEnvValue("VITE_OPENAI_MODEL", "REACT_APP_OPENAI_MODEL") || "gpt-5.4-mini";
 
 function buildCatalogSummary(products) {
   return products
@@ -73,10 +84,13 @@ function parseRecommendationIds(responseText, products) {
 }
 
 export async function getRecommendations(query, products) {
-  const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  const apiKey = getEnvValue(
+    "VITE_OPENAI_API_KEY",
+    "REACT_APP_OPENAI_API_KEY"
+  );
 
   if (!apiKey) {
-    throw new Error("Missing REACT_APP_OPENAI_API_KEY.");
+    throw new Error("Missing VITE_OPENAI_API_KEY.");
   }
 
   // In production, call OpenAI from your server to avoid exposing secrets in the browser.
